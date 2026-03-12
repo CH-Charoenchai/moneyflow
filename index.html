@@ -662,7 +662,7 @@ const NM_TYPES=[
   {id:'other',label:'📌 อื่นๆ',badgeClass:'badge-other',icon:'📌',color:'rgba(100,116,139,.08)'},
 ];
 let selNMType='cc',selNMItem=null,nmTabFilter='all';
-const PAYS=[{id:'🏦 โอนเงิน',l:'🏦 โอน'},{id:'💵 เงินสด',l:'💵 เงินสด'},{id:'💳 บัตรเครดิต',l:'💳 บัตร'},{id:'📱 E-Wallet',l:'📱 Wallet'}];
+const PAYS=[{id:'🏦 โอนเงิน',l:'🏦 โอน'},{id:'💵 เงินสด',l:'💵 เงินสด'},{id:'💳 บัตรเครดิต',l:'💳 บัตร'}];
 let selPay='🏦 โอนเงิน';
 
 function mkPills(cid,cur,setter,opts){
@@ -680,8 +680,6 @@ const CATS=[
   {id:'เดินทาง',icon:'🚗',sub:['น้ำมัน','Grab/Taxi','BTS/MRT','ทางด่วน']},
   {id:'ช้อปปิ้ง',icon:'🛍',sub:['เสื้อผ้า','ของใช้','ของแต่งบ้าน','อิเล็กทรอนิกส์']},
   {id:'บ้าน',icon:'🏠',sub:['ค่าเช่า','ค่าไฟ','ค่าน้ำ','อินเทอร์เน็ต']},
-  {id:'Subscription',icon:'📱',sub:['Netflix','Spotify','YouTube Premium','iCloud','อื่นๆ']},
-  {id:'ประกัน',icon:'🛡',sub:['ประกันชีวิต','ประกันรถ','ประกันสุขภาพ']},
   {id:'บัตรเครดิต',icon:'💳',sub:['ชำระขั้นต่ำ','ชำระเต็ม']},
   {id:'อื่นๆ',icon:'🎯',sub:['ความบันเทิง','สุขภาพ','การศึกษา','อื่นๆ']},
 ];
@@ -922,27 +920,40 @@ function renderFC(){
   document.getElementById('fcP').textContent=inc>0?Math.round(total/inc*100)+'%':'—';
   const el=document.getElementById('fcList');el.innerHTML='';
   if(!fixedCosts.length){el.innerHTML='<div class="empty"><div class="empty-icon">📌</div><div class="empty-text">ยังไม่มี Fixed Cost</div></div>';return}
-  // newest created first (id desc), inactive at bottom
+
+  const paidMap=loadFCPaid();
+  const monthKey=`${curY}-${curM}`;
+
+  // newest created first, then sort: unpaid active → paid active → inactive
   const sortByIdDesc=(a,b)=>String(b.id||'').localeCompare(String(a.id||''));
-  const sorted=[...fixedCosts.filter(f=>f.active).sort(sortByIdDesc),...fixedCosts.filter(f=>!f.active).sort(sortByIdDesc)];
+  const activeFC=fixedCosts.filter(f=>f.active).sort(sortByIdDesc);
+  const inactiveFC=fixedCosts.filter(f=>!f.active).sort(sortByIdDesc);
+  const unpaid=activeFC.filter(f=>!paidMap[`${monthKey}:${f.id}`]);
+  const paid=activeFC.filter(f=>!!paidMap[`${monthKey}:${f.id}`]);
+  const sorted=[...unpaid,...paid,...inactiveFC];
+
   sorted.forEach(f=>{
-    const dim=!f.active?'opacity:.4;':'';
+    const isPaid=!!paidMap[`${monthKey}:${f.id}`];
+    const isInactive=!f.active;
+    const dim=isInactive?'opacity:.4;':'';
+    const paidStyle=isPaid&&!isInactive?'opacity:.55;':'';
     const d=document.createElement('div');d.className='fc-item';
     d.innerHTML=`
       <div class="fc-item-top">
-        <div class="tx-icon" style="background:rgba(91,142,240,.1);font-size:19px;width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;${dim}">${f.category.split(' ')[0]}</div>
-        <div class="fc-item-body" style="${dim}">
-          <div class="tx-name" style="white-space:normal;overflow:visible;text-overflow:unset;font-size:var(--f-md);font-weight:700">${f.name}</div>
+        <div class="tx-icon" style="background:rgba(91,142,240,.1);font-size:19px;width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;${dim}${paidStyle}">${f.category.split(' ')[0]}</div>
+        <div class="fc-item-body" style="${dim}${paidStyle}">
+          <div class="tx-name" style="white-space:normal;overflow:visible;text-overflow:unset;font-size:var(--f-md);font-weight:700;${isPaid&&!isInactive?'text-decoration:line-through;':''}">${f.name}</div>
           <div style="font-size:var(--f-xs);color:var(--tx2);margin-top:3px">${f.category}</div>
         </div>
-        <div class="fc-item-right" style="${dim}">
-          <div style="font-family:var(--mono);font-size:var(--f-lg);font-weight:700;color:var(--blue)">${fmt(f.amount)}</div>
-          <div style="font-size:var(--f-xs);color:var(--tx2);margin-top:3px">${f.active?'✅ เปิด':'⏸ ปิด'}</div>
+        <div class="fc-item-right" style="${dim}${paidStyle}">
+          <div style="font-family:var(--mono);font-size:var(--f-lg);font-weight:700;color:${isPaid&&!isInactive?'var(--acc)':'var(--blue)'}">${fmt(f.amount)}</div>
+          <div style="font-size:var(--f-xs);color:var(--tx2);margin-top:3px">${isInactive?'⏸ ปิด':isPaid?'✅ จ่ายแล้ว':'⏳ ยังไม่จ่าย'}</div>
         </div>
       </div>
       <div class="fc-item-bottom">
         <span class="fc-due-badge">วันที่ ${f.dueDay} ของเดือน</span>
         <div class="fc-actions">
+          ${isPaid&&!isInactive?`<button class="fc-btn" style="border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.08);color:var(--amber)" onclick="event.stopPropagation();undoFcPay('${f.id}')">↩ เลิกจ่าย</button>`:''}
           <button class="fc-btn edit" onclick="event.stopPropagation();editFc('${f.id}')">✏️ แก้ไข</button>
           <button class="fc-btn del" onclick="event.stopPropagation();deleteFc('${f.id}')">🗑 ลบ</button>
         </div>
@@ -971,26 +982,48 @@ async function deleteFc(id){
   try{const r=await gasCall({action:'deleteFixedCost',id});if(r.success){fixedCosts=fixedCosts.filter(x=>x.id!==id);renderFC();renderNM();showT('🗑 ลบแล้ว','ok')}else showT('❌ ลบไม่สำเร็จ','err')}catch{showT('❌ เชื่อมต่อไม่ได้','err')}
 }
 
+function undoFcPay(id){
+  const monthKey=`${curY}-${curM}`;
+  const paidKey=`${monthKey}:${id}`;
+  const paidMap=loadFCPaid();
+  if(!paidMap[paidKey])return;
+  // find and delete the expense we created
+  const f=fixedCosts.find(x=>x.id===id);
+  const txToDelete=expenses.find(e=>e.source==='fixed_cost'&&e.subCategory===f?.name&&new Date(e.date).getMonth()+1===curM&&new Date(e.date).getFullYear()===curY);
+  if(txToDelete){
+    gasCall({action:'deleteExpense',id:txToDelete.id}).catch(()=>{});
+    expenses=expenses.filter(e=>e.id!==txToDelete.id);
+  }
+  delete paidMap[paidKey];
+  saveFCPaid(paidMap);
+  renderAll();
+  showT('↩ ยกเลิกการจ่ายแล้ว','ok');
+}
+
 // ─── FIX 2: render fixed pay list in add modal ───
 function renderFCPayList(){
   const el=document.getElementById('fcPayList');el.innerHTML='';
   const paidMap=loadFCPaid();
   const monthKey=`${curY}-${curM}`;
-  const active=fixedCosts.filter(f=>f.active).sort((a,b)=>a.dueDay-b.dueDay);
-  if(!active.length){el.innerHTML='<div class="fc-pay-empty">ยังไม่มี Fixed Cost ที่เปิดใช้งาน<br><span style="color:var(--acc);cursor:pointer;font-weight:700" onclick="closeM(\'addModal\');openM(\'fcModal\')">+ เพิ่ม Fixed Cost</span></div>';return}
-  active.forEach(f=>{
+  const allActive=fixedCosts.filter(f=>f.active);
+  if(!allActive.length){el.innerHTML='<div class="fc-pay-empty">ยังไม่มี Fixed Cost ที่เปิดใช้งาน<br><span style="color:var(--acc);cursor:pointer;font-weight:700" onclick="closeM(\'addModal\');openM(\'fcModal\')">+ เพิ่ม Fixed Cost</span></div>';return}
+  // unpaid first, paid at bottom
+  const sortByIdDesc=(a,b)=>String(b.id||'').localeCompare(String(a.id||''));
+  const unpaid=allActive.filter(f=>!paidMap[`${monthKey}:${f.id}`]).sort(sortByIdDesc);
+  const paid=allActive.filter(f=>!!paidMap[`${monthKey}:${f.id}`]).sort(sortByIdDesc);
+  [...unpaid,...paid].forEach(f=>{
     const paidKey=`${monthKey}:${f.id}`;
-    const isPaid=!!(paidMap[paidKey]);
+    const isPaid=!!paidMap[paidKey];
     const d=document.createElement('div');
     d.className='fc-pay-item'+(isPaid?' paid-done':'');
     d.innerHTML=`
       <div class="fcp-icon">${f.category.split(' ')[0]}</div>
       <div class="fcp-info">
-        <div class="fcp-name">${f.name}</div>
+        <div class="fcp-name" style="${isPaid?'text-decoration:line-through;':''}">${f.name}</div>
         <div class="fcp-due">วันที่ ${f.dueDay} · ${f.category}</div>
       </div>
       <div class="fcp-right">
-        <div class="fcp-amt">${fmt(f.amount)}</div>
+        <div class="fcp-amt" style="${isPaid?'color:var(--acc)':''}">${fmt(f.amount)}</div>
         <div class="fcp-check">${isPaid?'✅':'○'}</div>
       </div>`;
     if(!isPaid){
