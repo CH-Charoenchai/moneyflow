@@ -656,7 +656,15 @@ async function loadData(){
     ]);
     if(eR.success)expenses=eR.data||[];
     if(iR.success)incomes=iR.data||[];
-    if(fR.success)fixedCosts=(fR.data||[]).map(f=>({...f,active:f.active===true||f.active==='TRUE'||f.active==='true'||f.active===1||f.active==='1'}));
+    if(fR.success){
+      // DEBUG: แสดง active value จริงของตัวแรก
+      if(fR.data&&fR.data.length>0){
+        const sample=fR.data[0];
+        showT(`DEBUG active="${sample.active}" type=${typeof sample.active}`,'');
+        console.log('FC raw data:', fR.data);
+      }
+      fixedCosts=(fR.data||[]).map(f=>({...f,active:f.active===true||f.active==='TRUE'||f.active==='true'||f.active===1||f.active==='1'}));
+    }
     if(aeR.success)allExpenses=aeR.data||[];
     if(aiR.success)allIncomes=aiR.data||[];
     setSS('ok','ซิงค์แล้ว · '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
