@@ -657,13 +657,10 @@ async function loadData(){
     if(eR.success)expenses=eR.data||[];
     if(iR.success)incomes=iR.data||[];
     if(fR.success){
-      // DEBUG: แสดง active value จริงของตัวแรก
-      if(fR.data&&fR.data.length>0){
-        const sample=fR.data[0];
-        showT(`DEBUG active="${sample.active}" type=${typeof sample.active}`,'');
-        console.log('FC raw data:', fR.data);
-      }
-      fixedCosts=(fR.data||[]).map(f=>({...f,active:f.active===true||f.active==='TRUE'||f.active==='true'||f.active===1||f.active==='1'}));
+      fixedCosts=(fR.data||[]).map(f=>({
+        ...f,
+        active: !(f.active===false||f.active==='false'||f.active==='FALSE'||f.active===0||f.active==='0'||f.active===''||f.active==null)
+      }));
     }
     if(aeR.success)allExpenses=aeR.data||[];
     if(aiR.success)allIncomes=aiR.data||[];
@@ -1015,7 +1012,8 @@ async function saveTx(){
 async function saveFc(){
   const name=document.getElementById('fcN').value.trim(),amt=parseFloat(document.getElementById('fcAmt').value),due=parseInt(document.getElementById('fcDue').value);
   if(!name){showT('⚠️ กรุณาใส่ชื่อ','err');return}if(!amt||amt<=0){showT('⚠️ กรุณากรอกจำนวนเงิน','err');return}if(!due||due<1||due>31){showT('⚠️ วันที่ต้อง 1-31','err');return}
-  const data={name,amount:amt,category:document.getElementById('fcCat').value,dueDay:due,startDate:document.getElementById('fcSt').value,active:document.getElementById('fcTog').classList.contains('on')};
+  const isActive=document.getElementById('fcTog').classList.contains('on');
+  const data={name,amount:amt,category:document.getElementById('fcCat').value,dueDay:due,startDate:document.getElementById('fcSt').value,active:isActive};
   const btn=document.getElementById('fcSaveBtn'),origTxt=btn.textContent;btn.textContent='กำลังบันทึก...';btn.disabled=true;
   try{
     if(editFcId){
