@@ -474,16 +474,16 @@ canvas{display:block;width:100%!important;max-height:clamp(140px,42vw,200px)}
         <div class="pie-legend" id="pleg"></div>
       </div>
       <div class="chart-card">
+        <div class="chart-title">ยอดรวมรายเดือน <span class="chart-badge" id="yearBdg"></span></div>
+        <canvas id="yearC"></canvas>
+      </div>
+      <div class="chart-card">
         <div class="chart-title">รายจ่ายรายวัน</div>
         <canvas id="lineC"></canvas>
       </div>
       <div class="chart-card">
         <div class="chart-title">Fixed vs Variable</div>
         <canvas id="barC"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">ยอดรวมรายเดือน <span class="chart-badge" id="yearBdg"></span></div>
-        <canvas id="yearC"></canvas>
       </div>
     </div>
 
@@ -898,10 +898,12 @@ function renderHistory(){
   if(hFilter==='expense')all=all.filter(t=>t.type==='expense');
   else if(hFilter==='income')all=all.filter(t=>t.type==='income');
   else if(hFilter.startsWith('c:')){const c=hFilter.slice(2);all=all.filter(t=>t.category===c)}
-  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  // group by date, within each date sort newest-created first (by id lexicographic desc or index)
   if(!all.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ไม่มีรายการในช่วงนี้</div></div>';return}
   const grp={};all.forEach(t=>{if(!grp[t.date])grp[t.date]=[];grp[t.date].push(t)});
+  // sort dates newest first, within date sort by id desc (newer id = added later)
   Object.entries(grp).sort((a,b)=>new Date(b[0])-new Date(a[0])).forEach(([dt,items])=>{
+    items.sort((a,b)=>String(b.id||'').localeCompare(String(a.id||'')));
     const dt2=items.reduce((s,t)=>t.type==='expense'?s-t.amount:s+t.amount,0);
     const dl=document.createElement('div');dl.className='date-divider';
     dl.innerHTML=`${fmtD(dt)}<span class="date-total" style="color:${dt2>=0?'var(--acc)':'var(--red)'}">${dt2>=0?'+':''}${fmt(dt2)}</span>`;
@@ -920,7 +922,9 @@ function renderFC(){
   document.getElementById('fcP').textContent=inc>0?Math.round(total/inc*100)+'%':'—';
   const el=document.getElementById('fcList');el.innerHTML='';
   if(!fixedCosts.length){el.innerHTML='<div class="empty"><div class="empty-icon">📌</div><div class="empty-text">ยังไม่มี Fixed Cost</div></div>';return}
-  const sorted=[...fixedCosts.filter(f=>f.active).sort((a,b)=>a.dueDay-b.dueDay),...fixedCosts.filter(f=>!f.active).sort((a,b)=>a.dueDay-b.dueDay)];
+  // newest created first (id desc), inactive at bottom
+  const sortByIdDesc=(a,b)=>String(b.id||'').localeCompare(String(a.id||''));
+  const sorted=[...fixedCosts.filter(f=>f.active).sort(sortByIdDesc),...fixedCosts.filter(f=>!f.active).sort(sortByIdDesc)];
   sorted.forEach(f=>{
     const dim=!f.active?'opacity:.4;':'';
     const d=document.createElement('div');d.className='fc-item';
@@ -1030,7 +1034,11 @@ function renderNM(){
   if(nmTabFilter==='fixed'){renderFixedAsNMItems(el);return}
   let items=[...nmItems];
   if(nmTabFilter==='cc')items=items.filter(i=>i.type==='cc');
-  items.sort((a,b)=>(a.dueDay||32)-(b.dueDay||32));
+  // newest first (id desc), paid items at bottom
+  items.sort((a,b)=>{
+    if(a.paid!==b.paid)return a.paid?1:-1;
+    return String(b.id||'').localeCompare(String(a.id||''));
+  });
   if(!items.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">ยังไม่มีรายจ่ายเดือนหน้า<br><span style="color:var(--acc);cursor:pointer;font-weight:700" onclick="openM('nmModal')">+ เพิ่มเลย</span></div></div>`;return}
   items.forEach(item=>{
     const t=NM_TYPES.find(x=>x.id===item.type)||NM_TYPES[3];
@@ -1044,8 +1052,9 @@ function renderNM(){
 }
 
 function renderFixedAsNMItems(el){
-  const actv=fixedCosts.filter(f=>f.active).sort((a,b)=>a.dueDay-b.dueDay);
-  const inact=fixedCosts.filter(f=>!f.active).sort((a,b)=>a.dueDay-b.dueDay);
+  const sortByIdDesc=(a,b)=>String(b.id||'').localeCompare(String(a.id||''));
+  const actv=fixedCosts.filter(f=>f.active).sort(sortByIdDesc);
+  const inact=fixedCosts.filter(f=>!f.active).sort(sortByIdDesc);
   const all=[...actv,...inact];
   if(!all.length){el.innerHTML='<div class="empty"><div class="empty-icon">📌</div><div class="empty-text">ยังไม่มี Fixed Cost</div></div>';return}
   all.forEach(f=>{
