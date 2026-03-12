@@ -714,25 +714,83 @@ function renderDash(){
   // PIE
   const byCat={};fe.forEach(t=>{byCat[t.category]=(byCat[t.category]||0)+t.amount});
   const lbs=Object.keys(byCat),vals=Object.values(byCat),cols=lbs.map(l=>CC[l]||'#64748b');
+  // ── shared datalabel plugin (inline, no CDN needed) ──
+  const barLabelPlugin={id:'barLabel',afterDatasetsDraw(chart){
+    const{ctx,data}=chart;
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      meta.data.forEach((bar,i)=>{
+        const v=ds.data[i];if(!v||v<=0)return;
+        const lbl='฿'+fmtK(v);
+        ctx.save();ctx.fillStyle='#edf0f7';ctx.font='bold 10px JetBrains Mono, monospace';
+        ctx.textAlign='center';ctx.textBaseline='bottom';
+        const y=bar.y-4;
+        ctx.fillText(lbl,bar.x,y);ctx.restore();
+      });
+    });
+  }};
+  const lineLabelPlugin={id:'lineLabel',afterDatasetsDraw(chart){
+    const{ctx,data}=chart;
+    const ds=chart.data.datasets[0];
+    const meta=chart.getDatasetMeta(0);
+    // find top 3 points by value to label
+    const pts=[...ds.data.map((v,i)=>({v,i}))].filter(p=>p.v>0).sort((a,b)=>b.v-a.v).slice(0,3);
+    pts.forEach(({v,i})=>{
+      const pt=meta.data[i];if(!pt)return;
+      ctx.save();ctx.fillStyle='#f05b7a';ctx.font='bold 10px JetBrains Mono, monospace';
+      ctx.textAlign='center';ctx.textBaseline='bottom';
+      ctx.fillText('฿'+fmtK(v),pt.x,pt.y-6);ctx.restore();
+    });
+  }};
+  const pieLabelPlugin={id:'pieLabel',afterDatasetsDraw(chart){
+    const{ctx}=chart;const ds=chart.data.datasets[0];const meta=chart.getDatasetMeta(0);
+    const total=ds.data.reduce((s,v)=>s+v,0);
+    meta.data.forEach((arc,i)=>{
+      const v=ds.data[i];if(!v||v/total<0.05)return; // skip tiny slices
+      const mid=arc.startAngle+(arc.endAngle-arc.startAngle)/2;
+      const r=(arc.innerRadius+arc.outerRadius)/2;
+      const x=arc.x+Math.cos(mid)*r,y=arc.y+Math.sin(mid)*r;
+      ctx.save();ctx.fillStyle='#fff';ctx.font='bold 10px JetBrains Mono, monospace';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=3;
+      ctx.fillText('฿'+fmtK(v),x,y);ctx.restore();
+    });
+  }};
+
   if(pieCI)pieCI.destroy();
   const legEl=document.getElementById('pleg');
   if(lbs.length){
-    pieCI=new Chart(document.getElementById('pieC').getContext('2d'),{type:'doughnut',data:{labels:lbs,datasets:[{data:vals,backgroundColor:cols,borderWidth:0,hoverOffset:8}]},options:{responsive:true,cutout:'66%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)} (${tE>0?Math.round(ctx.raw/tE*100):0}%)`}}}}});
-    legEl.innerHTML=lbs.map((l,i)=>`<div class="pie-legend-item"><div class="pie-dot" style="background:${cols[i]}"></div>${l}<span class="pie-pct">${tE>0?Math.round(vals[i]/tE*100):0}%</span></div>`).join('');
+    pieCI=new Chart(document.getElementById('pieC').getContext('2d'),{
+      type:'doughnut',
+      data:{labels:lbs,datasets:[{data:vals,backgroundColor:cols,borderWidth:0,hoverOffset:8}]},
+      options:{responsive:true,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)} (${tE>0?Math.round(ctx.raw/tE*100):0}%)`}}}},
+      plugins:[pieLabelPlugin]
+    });
+    legEl.innerHTML=lbs.map((l,i)=>`<div class="pie-legend-item"><div class="pie-dot" style="background:${cols[i]}"></div>${l}<span class="pie-pct">${fmt(vals[i])}</span></div>`).join('');
   }else legEl.innerHTML='';
 
-  // LINE
+  // LINE — แสดงยอดสูงสุด 3 จุด
   const dim=new Date(curY,curM,0).getDate(),daily=new Array(dim).fill(0);
   fe.forEach(t=>{const d=new Date(t.date).getDate()-1;if(d>=0&&d<dim)daily[d]+=t.amount});
   if(lineCI)lineCI.destroy();
   const lCtx=document.getElementById('lineC').getContext('2d');
   const gr=lCtx.createLinearGradient(0,0,0,150);gr.addColorStop(0,'rgba(240,91,122,.24)');gr.addColorStop(1,'rgba(240,91,122,0)');
-  lineCI=new Chart(lCtx,{type:'line',data:{labels:Array.from({length:dim},(_,i)=>i+1),datasets:[{data:daily,borderColor:'#f05b7a',backgroundColor:gr,borderWidth:2.5,fill:true,tension:.4,pointRadius:0,pointHoverRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:tc,maxTicksLimit:8,font:{size:10}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>'฿'+fmtK(v),font:{size:10}}}}}});
+  lineCI=new Chart(lCtx,{
+    type:'line',
+    data:{labels:Array.from({length:dim},(_,i)=>i+1),datasets:[{data:daily,borderColor:'#f05b7a',backgroundColor:gr,borderWidth:2.5,fill:true,tension:.4,pointRadius:0,pointHoverRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`฿${fmtK(ctx.raw)}`}}},scales:{x:{grid:{color:gc},ticks:{color:tc,maxTicksLimit:8,font:{size:10}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>'฿'+fmtK(v),font:{size:10}}}}},
+    plugins:[lineLabelPlugin]
+  });
 
   // BAR fixed vs variable
   const fixT=fixedCosts.filter(f=>f.active).reduce((s,f)=>s+f.amount,0);
   if(barCI)barCI.destroy();
-  barCI=new Chart(document.getElementById('barC').getContext('2d'),{type:'bar',data:{labels:['Fixed','Variable'],datasets:[{data:[fixT,Math.max(0,tE-fixT)],backgroundColor:['rgba(91,142,240,.75)','rgba(249,115,22,.75)'],borderRadius:8,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>'฿'+fmtK(v),font:{size:10}}}}}});
+  barCI=new Chart(document.getElementById('barC').getContext('2d'),{
+    type:'bar',
+    data:{labels:['Fixed','Variable'],datasets:[{data:[fixT,Math.max(0,tE-fixT)],backgroundColor:['rgba(91,142,240,.75)','rgba(249,115,22,.75)'],borderRadius:8,borderWidth:0}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`฿${fmtK(ctx.raw)}`}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>'฿'+fmtK(v),font:{size:10}}}}},
+    plugins:[barLabelPlugin]
+  });
 
   // YEARLY
   const mE=new Array(12).fill(0),mI=new Array(12).fill(0);
@@ -741,9 +799,25 @@ function renderDash(){
   srcE.forEach(t=>{const d=new Date(t.date);if(d.getFullYear()===curY)mE[d.getMonth()]+=t.amount});
   srcI.forEach(t=>{const d=new Date(t.date);if(d.getFullYear()===curY)mI[d.getMonth()]+=t.amount});
   if(yearCI)yearCI.destroy();
-  yearCI=new Chart(document.getElementById('yearC').getContext('2d'),{type:'bar',
+  // yearly bar label — smaller font
+  const yearLabelPlugin={id:'yearLabel',afterDatasetsDraw(chart){
+    const{ctx}=chart;
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      meta.data.forEach((bar,i)=>{
+        const v=ds.data[i];if(!v||v<=0)return;
+        ctx.save();ctx.fillStyle='rgba(237,240,247,.8)';ctx.font='bold 9px JetBrains Mono, monospace';
+        ctx.textAlign='center';ctx.textBaseline='bottom';
+        ctx.fillText('฿'+fmtK(v),bar.x,bar.y-2);ctx.restore();
+      });
+    });
+  }};
+  yearCI=new Chart(document.getElementById('yearC').getContext('2d'),{
+    type:'bar',
     data:{labels:MNS,datasets:[{label:'รายรับ',data:mI,backgroundColor:'rgba(61,214,140,.7)',borderRadius:5,borderWidth:0},{label:'รายจ่าย',data:mE,backgroundColor:'rgba(240,91,122,.7)',borderRadius:5,borderWidth:0}]},
-    options:{responsive:true,plugins:{legend:{display:true,labels:{color:tc,font:{size:10},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:9}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>'฿'+fmtK(v),font:{size:9}}}}}});
+    options:{responsive:true,plugins:{legend:{display:true,labels:{color:tc,font:{size:10},boxWidth:10,padding:10}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ฿${fmtK(ctx.raw)}`}}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:9}}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>'฿'+fmtK(v),font:{size:9}}}}},
+    plugins:[yearLabelPlugin]
+  });
 }
 
 function renderHistory(){
