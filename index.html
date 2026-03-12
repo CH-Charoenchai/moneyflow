@@ -26,11 +26,15 @@
   --touch:clamp(48px,13vw,60px);
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
   --font:'Noto Sans Thai',sans-serif;--mono:'JetBrains Mono',monospace;
+  /* chart label colors */
+  --chart-label:#edf0f7;
 }
 [data-theme="light"]{
   --bg:#f2f4f9;--sur:#fff;--sur2:#f7f8fc;--sur3:#eef0f6;--bdr:#dde2ee;
   --acc:#1aab64;--blue:#3b6fd4;--red:#d63b5c;--amber:#c47f00;--pur:#7c3aed;
   --tx:#0f1523;--tx2:#5c6880;--tx3:#adb5c8;
+  /* FIX 1: chart labels must be dark enough in light mode */
+  --chart-label:#1a2035;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100dvh;width:100%;overflow:hidden}
@@ -90,7 +94,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);font-size:var(
 .section-action{font-size:var(--f-sm);color:var(--acc);cursor:pointer;font-weight:700;
   padding:8px 0;min-height:38px;display:flex;align-items:center}
 
-/* SYNC ROW — no border, just text */
+/* SYNC ROW */
 .sync-row{display:flex;align-items:center;gap:8px;font-size:var(--f-xs);
   color:var(--tx2);margin-bottom:var(--sp-sm);padding:2px 0}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--tx3);flex-shrink:0;transition:background .3s}
@@ -124,6 +128,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);font-size:var(
 .card-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .card-income .card-dot{background:var(--acc)}.card-expense .card-dot{background:var(--red)}
 .card-value{font-family:var(--mono);font-size:var(--f-xl);font-weight:700;letter-spacing:-1px;line-height:1}
+/* FIX 1: ensure summary card values are always readable */
 .val-pos{color:var(--acc)}.val-neg{color:var(--red)}
 .card-sub{font-size:var(--f-xs);color:var(--tx2);margin-top:5px}
 
@@ -189,27 +194,36 @@ canvas{display:block;width:100%!important;max-height:clamp(140px,42vw,200px)}
 .filter-chip.active{background:rgba(61,214,140,.12);border-color:var(--acc);color:var(--acc)}
 .filter-chip:active{transform:scale(.94)}
 
-/* FIXED COST PAGE */
+/* ─────────────────────────────────────────
+   FIX 3: FIXED COST PAGE — new layout
+   ───────────────────────────────────────── */
 .fc-summary{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r-lg);
   padding:var(--sp-lg);margin-bottom:var(--sp-md);
   display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-sm);text-align:center}
 .fc-stat-val{font-family:var(--mono);font-size:var(--f-xl);font-weight:700;color:var(--blue)}
 .fc-stat-lbl{font-size:var(--f-xs);color:var(--tx2);margin-top:4px;font-weight:600}
+
+/* new fc-item layout: 2 rows */
 .fc-item{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r-md);
-  padding:var(--sp-md);display:flex;align-items:center;gap:var(--sp-md);
-  margin-bottom:8px;min-height:clamp(66px,18vw,78px);transition:background .12s}
+  padding:var(--sp-md);margin-bottom:8px;transition:background .12s}
 .fc-item:active{background:var(--sur3)}
+.fc-item-top{display:flex;align-items:center;gap:var(--sp-md)}
+.fc-item-body{flex:1;min-width:0}
+.fc-item-right{flex-shrink:0;text-align:right}
+.fc-item-bottom{display:flex;align-items:center;justify-content:space-between;
+  margin-top:10px;padding-top:8px;border-top:1px solid var(--bdr)}
 .fc-due-badge{font-size:var(--f-xs);background:rgba(91,142,240,.1);color:var(--blue);
   border:1px solid rgba(91,142,240,.22);padding:4px 10px;border-radius:var(--r-pill);
-  margin-top:4px;display:inline-block;font-weight:600}
-.fc-actions{display:flex;gap:7px;flex-shrink:0}
-.fc-btn{width:clamp(32px,9vw,40px);height:clamp(32px,9vw,40px);border-radius:var(--r-sm);
+  display:inline-block;font-weight:600}
+.fc-actions{display:flex;gap:7px}
+.fc-btn{height:clamp(30px,8vw,36px);padding:0 12px;border-radius:var(--r-sm);
   border:1px solid var(--bdr);background:var(--sur2);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:15px;
-  transition:background .12s;flex-shrink:0}
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  transition:background .12s;white-space:nowrap;gap:4px;color:var(--tx2);font-weight:700;
+  font-family:var(--font);font-size:var(--f-xs)}
 .fc-btn:active{transform:scale(.86)}
-.fc-btn.edit{border-color:rgba(91,142,240,.4);background:rgba(91,142,240,.08)}
-.fc-btn.del{border-color:rgba(240,91,122,.4);background:rgba(240,91,122,.08)}
+.fc-btn.edit{border-color:rgba(91,142,240,.4);background:rgba(91,142,240,.08);color:var(--blue)}
+.fc-btn.del{border-color:rgba(240,91,122,.4);background:rgba(240,91,122,.08);color:var(--red)}
 
 /* NEXT MONTH */
 .nm-hero{background:linear-gradient(135deg,rgba(91,142,240,.14),rgba(167,139,250,.08));
@@ -253,6 +267,34 @@ canvas{display:block;width:100%!important;max-height:clamp(140px,42vw,200px)}
 .badge-ins{background:rgba(91,142,240,.1);color:var(--blue);border:1px solid rgba(91,142,240,.22)}
 .badge-other{background:var(--sur2);color:var(--tx2);border:1px solid var(--bdr)}
 
+/* ─────────────────────────────────────────
+   FIX 2: ADD MODAL TABS (expense/income/fixed)
+   ───────────────────────────────────────── */
+.add-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:var(--sp-lg)}
+.add-tab{padding:13px 8px;border-radius:var(--r-md);border:1.5px solid var(--bdr);
+  background:var(--sur2);color:var(--tx2);font-family:var(--font);font-size:var(--f-sm);
+  font-weight:800;cursor:pointer;transition:all .15s;min-height:clamp(46px,13vw,58px);text-align:center}
+.add-tab:active{transform:scale(.95)}
+.add-tab.tab-expense{background:rgba(240,91,122,.14);border-color:var(--red);color:var(--red)}
+.add-tab.tab-income{background:rgba(61,214,140,.14);border-color:var(--acc);color:var(--acc)}
+.add-tab.tab-fixed{background:rgba(91,142,240,.14);border-color:var(--blue);color:var(--blue)}
+
+/* Fixed pay section in add modal */
+.fc-pay-item{background:var(--sur2);border:1.5px solid var(--bdr);border-radius:var(--r-md);
+  padding:var(--sp-md);display:flex;align-items:center;gap:var(--sp-md);
+  margin-bottom:8px;cursor:pointer;transition:all .15s}
+.fc-pay-item:active{transform:scale(.985)}
+.fc-pay-item.paid-done{opacity:.45;border-style:dashed}
+.fc-pay-item .fcp-icon{width:40px;height:40px;border-radius:12px;background:rgba(91,142,240,.1);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.fc-pay-item .fcp-info{flex:1;min-width:0}
+.fc-pay-item .fcp-name{font-size:var(--f-md);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-pay-item .fcp-due{font-size:var(--f-xs);color:var(--tx2);margin-top:2px}
+.fc-pay-item .fcp-right{flex-shrink:0;text-align:right}
+.fc-pay-item .fcp-amt{font-family:var(--mono);font-size:var(--f-md);font-weight:700;color:var(--blue)}
+.fc-pay-item .fcp-check{font-size:var(--f-lg);margin-top:3px}
+.fc-pay-empty{text-align:center;padding:24px;color:var(--tx3);font-size:var(--f-sm)}
+
 /* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);z-index:200;display:flex;align-items:flex-end;
@@ -293,13 +335,12 @@ canvas{display:block;width:100%!important;max-height:clamp(140px,42vw,200px)}
 .amount-input{font-family:var(--mono);font-size:var(--f-2xl);font-weight:700;
   padding-left:clamp(34px,10vw,46px);height:clamp(62px,17vw,76px);letter-spacing:-1px}
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:var(--sp-lg)}
-.type-btn{padding:15px;border-radius:var(--r-md);border:1.5px solid var(--bdr);
-  background:var(--sur2);color:var(--tx2);font-family:var(--font);font-size:var(--f-md);
-  font-weight:800;cursor:pointer;transition:all .15s;min-height:clamp(50px,14vw,62px)}
-.type-btn:active{transform:scale(.95)}
-.type-btn.expense{background:rgba(240,91,122,.14);border-color:var(--red);color:var(--red)}
-.type-btn.income{background:rgba(61,214,140,.14);border-color:var(--acc);color:var(--acc)}
+.pay-pills{display:flex;gap:8px;flex-wrap:wrap}
+.pay-pill{padding:9px 13px;border-radius:var(--r-pill);border:1.5px solid var(--bdr);
+  background:var(--sur2);color:var(--tx2);font-size:var(--f-sm);font-weight:700;cursor:pointer;
+  transition:all .15s;min-height:clamp(38px,10vw,48px);display:flex;align-items:center;font-family:var(--font)}
+.pay-pill.active{border-color:var(--blue);background:rgba(91,142,240,.12);color:var(--blue)}
+.pay-pill:active{transform:scale(.93)}
 .cat-wrap{display:flex;flex-wrap:wrap;gap:8px}
 .cat-chip{padding:9px 13px;border-radius:var(--r-pill);border:1.5px solid var(--bdr);
   background:var(--sur2);color:var(--tx2);font-size:var(--f-sm);font-weight:700;cursor:pointer;
@@ -307,12 +348,6 @@ canvas{display:block;width:100%!important;max-height:clamp(140px,42vw,200px)}
   min-height:clamp(38px,10vw,48px);font-family:var(--font)}
 .cat-chip:active{transform:scale(.93)}
 .cat-chip.sel-e{background:rgba(240,91,122,.1);border-color:var(--red);color:var(--red)}
-.pay-pills{display:flex;gap:8px;flex-wrap:wrap}
-.pay-pill{padding:9px 13px;border-radius:var(--r-pill);border:1.5px solid var(--bdr);
-  background:var(--sur2);color:var(--tx2);font-size:var(--f-sm);font-weight:700;cursor:pointer;
-  transition:all .15s;min-height:clamp(38px,10vw,48px);display:flex;align-items:center;font-family:var(--font)}
-.pay-pill.active{border-color:var(--blue);background:rgba(91,142,240,.12);color:var(--blue)}
-.pay-pill:active{transform:scale(.93)}
 .btn-submit{width:100%;padding:16px;border-radius:var(--r-md);border:none;
   font-family:var(--font);font-size:var(--f-md);font-weight:800;cursor:pointer;
   transition:transform .12s;margin-top:8px;min-height:clamp(52px,14vw,62px);letter-spacing:.2px}
@@ -530,21 +565,34 @@ canvas{display:block;width:100%!important;max-height:clamp(140px,42vw,200px)}
   </nav>
 </div>
 
-<!-- ADD MODAL -->
+<!-- ─── ADD MODAL (expense / income / fixed pay) ─── -->
 <div class="overlay" id="addModal"><div class="modal">
   <div class="modal-top"><div style="width:34px"></div><div class="modal-handle-wrap"><div class="modal-handle" onclick="closeM('addModal')"></div></div><div class="modal-close" onclick="closeM('addModal')">✕</div></div>
-  <div class="type-toggle">
-    <button class="type-btn expense" id="tBE" onclick="setTT('expense')">− รายจ่าย</button>
-    <button class="type-btn" id="tBI" onclick="setTT('income')">+ รายรับ</button>
+
+  <!-- 3-way tab -->
+  <div class="add-tabs">
+    <div class="add-tab tab-expense" id="atE" onclick="setTT('expense')">− รายจ่าย</div>
+    <div class="add-tab" id="atI" onclick="setTT('income')">+ รายรับ</div>
+    <div class="add-tab" id="atF" onclick="setTT('fixed')">📌 Fixed</div>
   </div>
-  <div class="form-group"><div class="amount-wrap"><span class="amount-cur">฿</span><input type="number" class="form-input amount-input" id="aAmt" placeholder="0" inputmode="decimal"></div></div>
-  <div class="form-group" id="aCatSec"><label class="form-label">หมวดหมู่</label><div class="cat-wrap" id="aCats"></div></div>
-  <div class="form-group" id="aSubSec" style="display:none"><label class="form-label">หมวดย่อย</label><select class="form-select" id="aSub"></select></div>
-  <div class="form-group" id="aSrcSec" style="display:none"><label class="form-label">แหล่งรายรับ</label><select class="form-select" id="aSrc"><option>เงินเดือน</option><option>รายได้พิเศษ</option><option>โบนัส</option><option>ลงทุน</option><option>อื่นๆ</option></select></div>
-  <div class="form-group" id="aPaySec"><label class="form-label">วิธีชำระเงิน</label><div class="pay-pills" id="aPayPills"></div></div>
-  <div class="form-group"><label class="form-label">รายละเอียด</label><input type="text" class="form-input" id="aDesc" placeholder="รายละเอียด (ไม่บังคับ)"></div>
-  <div class="form-group"><label class="form-label">วันที่</label><input type="date" class="form-input" id="aDt"></div>
-  <button class="btn-submit btn-expense" id="aSaveBtn" onclick="saveTx()">− บันทึกรายจ่าย</button>
+
+  <!-- expense / income sections -->
+  <div id="addExpInc">
+    <div class="form-group"><div class="amount-wrap"><span class="amount-cur">฿</span><input type="number" class="form-input amount-input" id="aAmt" placeholder="0" inputmode="decimal"></div></div>
+    <div class="form-group" id="aCatSec"><label class="form-label">หมวดหมู่</label><div class="cat-wrap" id="aCats"></div></div>
+    <div class="form-group" id="aSubSec" style="display:none"><label class="form-label">หมวดย่อย</label><select class="form-select" id="aSub"></select></div>
+    <div class="form-group" id="aSrcSec" style="display:none"><label class="form-label">แหล่งรายรับ</label><select class="form-select" id="aSrc"><option>เงินเดือน</option><option>รายได้พิเศษ</option><option>โบนัส</option><option>ลงทุน</option><option>อื่นๆ</option></select></div>
+    <div class="form-group" id="aPaySec"><label class="form-label">วิธีชำระเงิน</label><div class="pay-pills" id="aPayPills"></div></div>
+    <div class="form-group"><label class="form-label">รายละเอียด</label><input type="text" class="form-input" id="aDesc" placeholder="รายละเอียด (ไม่บังคับ)"></div>
+    <div class="form-group"><label class="form-label">วันที่</label><input type="date" class="form-input" id="aDt"></div>
+    <button class="btn-submit btn-expense" id="aSaveBtn" onclick="saveTx()">− บันทึกรายจ่าย</button>
+  </div>
+
+  <!-- fixed pay section -->
+  <div id="addFixedPay" style="display:none">
+    <div style="font-size:var(--f-xs);color:var(--tx2);margin-bottom:var(--sp-md);font-weight:600">กดรายการเพื่อบันทึกว่าจ่ายแล้วสำหรับเดือนนี้</div>
+    <div id="fcPayList"></div>
+  </div>
 </div></div>
 
 <!-- FC MODAL -->
@@ -599,8 +647,12 @@ canvas{display:block;width:100%!important;max-height:clamp(140px,42vw,200px)}
 <script>
 const GAS_URL='https://script.google.com/macros/s/AKfycbyH0GCDfYqwV70Igwi06AdxVGoMnwIzt4Xfs6_BfY8xY1gY5sq6xrjTahgZ9xib3Le4xg/exec';
 const NM_KEY='mf_nextmonth_v2';
+// track which fixed costs are paid this month
+const FC_PAID_KEY='mf_fcpaid_v1';
 function loadNMData(){try{return JSON.parse(localStorage.getItem(NM_KEY)||'[]')}catch{return[]}}
 function saveNMData(a){localStorage.setItem(NM_KEY,JSON.stringify(a))}
+function loadFCPaid(){try{return JSON.parse(localStorage.getItem(FC_PAID_KEY)||'{}')}catch{return{}}}
+function saveFCPaid(d){localStorage.setItem(FC_PAID_KEY,JSON.stringify(d))}
 let nmItems=loadNMData();
 
 const NM_TYPES=[
@@ -636,6 +688,17 @@ const CATS=[
 const CC={อาหาร:'#3dd68c',เดินทาง:'#5b8ef0','ช้อปปิ้ง':'#f97316',บ้าน:'#a78bfa',Subscription:'#f05b7a',ประกัน:'#f0b429','บัตรเครดิต':'#34d399','อื่นๆ':'#64748b'};
 const CB={อาหาร:'rgba(61,214,140,.1)',เดินทาง:'rgba(91,142,240,.1)','ช้อปปิ้ง':'rgba(249,115,22,.1)',บ้าน:'rgba(167,139,250,.1)',Subscription:'rgba(240,91,122,.1)',ประกัน:'rgba(240,180,41,.1)','บัตรเครดิต':'rgba(52,211,153,.1)','อื่นๆ':'rgba(100,116,139,.06)'};
 const MNS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+// ── cat→expense category mapping for fixed cost pay ──
+function fcCatToExpCat(fcCat){
+  if(fcCat.includes('Subscription'))return'Subscription';
+  if(fcCat.includes('บัตรเครดิต'))return'บัตรเครดิต';
+  if(fcCat.includes('ผ่อน')||fcCat.includes('กู้'))return'อื่นๆ';
+  if(fcCat.includes('ประกัน'))return'ประกัน';
+  if(fcCat.includes('เดินทาง'))return'เดินทาง';
+  if(fcCat.includes('บ้าน'))return'บ้าน';
+  return'อื่นๆ';
+}
 
 function toggleTheme(){const h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');document.getElementById('themeBtn').textContent=d?'☀️':'🌙';localStorage.setItem('mf_theme',d?'light':'dark');renderDash()}
 function initTheme(){const s=localStorage.getItem('mf_theme')||'dark';document.documentElement.setAttribute('data-theme',s);document.getElementById('themeBtn').textContent=s==='dark'?'🌙':'☀️'}
@@ -690,10 +753,19 @@ function filtExp(){return filtByM(expenses)}
 function filtInc(){return filtByM(incomes)}
 function renderAll(){renderDash();renderHistory();renderFC();renderNM()}
 
-function renderDash(){
+// FIX 1: chart label color reads from CSS variable
+function chartLabelColor(){
+  return getComputedStyle(document.documentElement).getPropertyValue('--chart-label').trim()||'#edf0f7';
+}
+function chartGridColor(){
   const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  const gc=dark?'rgba(255,255,255,.04)':'rgba(0,0,0,.06)';
-  const tc=dark?'#3e4a60':'#adb5c8';
+  return dark?'rgba(255,255,255,.04)':'rgba(0,0,0,.07)';
+}
+
+function renderDash(){
+  const tc=chartLabelColor();
+  const gc=chartGridColor();
+
   document.getElementById('pbdg').textContent=MNS[curM-1]+' '+(curY+543);
   const fe=filtExp(),fi=filtInc();
   const tE=fe.reduce((s,t)=>s+t.amount,0),tI=fi.reduce((s,t)=>s+t.amount,0),bal=tI-tE;
@@ -707,7 +779,7 @@ function renderDash(){
   document.getElementById('dbs').textContent=bal>=0?'💰 เหลือเงินเดือนนี้':'⚠️ รายจ่ายเกินรายรับ';
   document.getElementById('balIcon').textContent=bal>=0?'💰':'⚠️';
 
-  // DUE ALERT — fixed costs ครบกำหนดใน 7 วัน
+  // DUE ALERT
   const todayDay=new Date().getDate();
   const dueItems=fixedCosts.filter(f=>f.active&&(f.dueDay-todayDay)>=0&&(f.dueDay-todayDay)<=7).sort((a,b)=>a.dueDay-b.dueDay);
   const ac=document.getElementById('dueAlert'),al=document.getElementById('dueAlertList');
@@ -716,29 +788,22 @@ function renderDash(){
     al.innerHTML=dueItems.map(f=>{const d=f.dueDay-todayDay;return`<div class="alert-item"><span class="ai-name">${f.name}</span><span class="ai-due">${d===0?'วันนี้':d===1?'พรุ่งนี้':'อีก '+d+' วัน'}</span><span class="ai-amt">${fmt(f.amount)}</span></div>`}).join('');
   }else ac.classList.remove('show');
 
-  // PIE
-  const byCat={};fe.forEach(t=>{byCat[t.category]=(byCat[t.category]||0)+t.amount});
-  const lbs=Object.keys(byCat),vals=Object.values(byCat),cols=lbs.map(l=>CC[l]||'#64748b');
-  // ── shared datalabel plugin (inline, no CDN needed) ──
+  // plugins
   const barLabelPlugin={id:'barLabel',afterDatasetsDraw(chart){
-    const{ctx,data}=chart;
+    const{ctx}=chart;
     chart.data.datasets.forEach((ds,di)=>{
       const meta=chart.getDatasetMeta(di);
       meta.data.forEach((bar,i)=>{
         const v=ds.data[i];if(!v||v<=0)return;
-        const lbl='฿'+fmtK(v);
-        ctx.save();ctx.fillStyle='#edf0f7';ctx.font='bold 10px JetBrains Mono, monospace';
+        ctx.save();ctx.fillStyle=tc;ctx.font='bold 10px JetBrains Mono, monospace';
         ctx.textAlign='center';ctx.textBaseline='bottom';
-        const y=bar.y-4;
-        ctx.fillText(lbl,bar.x,y);ctx.restore();
+        ctx.fillText('฿'+fmtK(v),bar.x,bar.y-4);ctx.restore();
       });
     });
   }};
   const lineLabelPlugin={id:'lineLabel',afterDatasetsDraw(chart){
-    const{ctx,data}=chart;
-    const ds=chart.data.datasets[0];
-    const meta=chart.getDatasetMeta(0);
-    // find top 3 points by value to label
+    const{ctx}=chart;
+    const ds=chart.data.datasets[0];const meta=chart.getDatasetMeta(0);
     const pts=[...ds.data.map((v,i)=>({v,i}))].filter(p=>p.v>0).sort((a,b)=>b.v-a.v).slice(0,3);
     pts.forEach(({v,i})=>{
       const pt=meta.data[i];if(!pt)return;
@@ -751,7 +816,7 @@ function renderDash(){
     const{ctx}=chart;const ds=chart.data.datasets[0];const meta=chart.getDatasetMeta(0);
     const total=ds.data.reduce((s,v)=>s+v,0);
     meta.data.forEach((arc,i)=>{
-      const v=ds.data[i];if(!v||v/total<0.05)return; // skip tiny slices
+      const v=ds.data[i];if(!v||v/total<0.05)return;
       const mid=arc.startAngle+(arc.endAngle-arc.startAngle)/2;
       const r=(arc.innerRadius+arc.outerRadius)/2;
       const x=arc.x+Math.cos(mid)*r,y=arc.y+Math.sin(mid)*r;
@@ -762,6 +827,9 @@ function renderDash(){
     });
   }};
 
+  // PIE
+  const byCat={};fe.forEach(t=>{byCat[t.category]=(byCat[t.category]||0)+t.amount});
+  const lbs=Object.keys(byCat),vals=Object.values(byCat),cols=lbs.map(l=>CC[l]||'#64748b');
   if(pieCI)pieCI.destroy();
   const legEl=document.getElementById('pleg');
   if(lbs.length){
@@ -774,7 +842,7 @@ function renderDash(){
     legEl.innerHTML=lbs.map((l,i)=>`<div class="pie-legend-item"><div class="pie-dot" style="background:${cols[i]}"></div>${l}<span class="pie-pct">${fmt(vals[i])}</span></div>`).join('');
   }else legEl.innerHTML='';
 
-  // LINE — แสดงยอดสูงสุด 3 จุด
+  // LINE
   const dim=new Date(curY,curM,0).getDate(),daily=new Array(dim).fill(0);
   fe.forEach(t=>{const d=new Date(t.date).getDate()-1;if(d>=0&&d<dim)daily[d]+=t.amount});
   if(lineCI)lineCI.destroy();
@@ -804,14 +872,13 @@ function renderDash(){
   srcE.forEach(t=>{const d=new Date(t.date);if(d.getFullYear()===curY)mE[d.getMonth()]+=t.amount});
   srcI.forEach(t=>{const d=new Date(t.date);if(d.getFullYear()===curY)mI[d.getMonth()]+=t.amount});
   if(yearCI)yearCI.destroy();
-  // yearly bar label — smaller font
   const yearLabelPlugin={id:'yearLabel',afterDatasetsDraw(chart){
     const{ctx}=chart;
     chart.data.datasets.forEach((ds,di)=>{
       const meta=chart.getDatasetMeta(di);
       meta.data.forEach((bar,i)=>{
         const v=ds.data[i];if(!v||v<=0)return;
-        ctx.save();ctx.fillStyle='rgba(237,240,247,.8)';ctx.font='bold 9px JetBrains Mono, monospace';
+        ctx.save();ctx.fillStyle=tc;ctx.font='bold 9px JetBrains Mono, monospace';
         ctx.textAlign='center';ctx.textBaseline='bottom';
         ctx.fillText('฿'+fmtK(v),bar.x,bar.y-2);ctx.restore();
       });
@@ -843,6 +910,7 @@ function renderHistory(){
 }
 function setF(el,f){hFilter=f;document.querySelectorAll('#hfb .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderHistory()}
 
+// ─── FIX 3: new FC render with 2-row layout ───
 function renderFC(){
   const active=fixedCosts.filter(f=>f.active);
   const total=active.reduce((s,f)=>s+f.amount,0);
@@ -852,21 +920,29 @@ function renderFC(){
   document.getElementById('fcP').textContent=inc>0?Math.round(total/inc*100)+'%':'—';
   const el=document.getElementById('fcList');el.innerHTML='';
   if(!fixedCosts.length){el.innerHTML='<div class="empty"><div class="empty-icon">📌</div><div class="empty-text">ยังไม่มี Fixed Cost</div></div>';return}
-  // Active first sorted by dueDay, inactive last dimmed
   const sorted=[...fixedCosts.filter(f=>f.active).sort((a,b)=>a.dueDay-b.dueDay),...fixedCosts.filter(f=>!f.active).sort((a,b)=>a.dueDay-b.dueDay)];
   sorted.forEach(f=>{
+    const dim=!f.active?'opacity:.4;':'';
     const d=document.createElement('div');d.className='fc-item';
-    const op=f.active?'':'opacity:.4;filter:saturate(.4);';
-    d.innerHTML=`<div class="tx-icon" style="background:rgba(91,142,240,.1);font-size:19px;${op}">${f.category.split(' ')[0]}</div>
-    <div class="tx-info" style="${op}"><div class="tx-name">${f.name}</div><span class="fc-due-badge">วันที่ ${f.dueDay} ของเดือน</span></div>
-    <div style="text-align:right;flex-shrink:0;margin-right:6px;${op}">
-      <div style="font-family:var(--mono);font-size:var(--f-lg);font-weight:700;color:var(--blue)">${fmt(f.amount)}</div>
-      <div style="font-size:var(--f-xs);color:var(--tx2);margin-top:3px">${f.active?'✅ เปิด':'⏸ ปิด'}</div>
-    </div>
-    <div class="fc-actions">
-      <div class="fc-btn edit" onclick="event.stopPropagation();editFc('${f.id}')">✏️</div>
-      <div class="fc-btn del" onclick="event.stopPropagation();deleteFc('${f.id}')">🗑</div>
-    </div>`;
+    d.innerHTML=`
+      <div class="fc-item-top">
+        <div class="tx-icon" style="background:rgba(91,142,240,.1);font-size:19px;width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;${dim}">${f.category.split(' ')[0]}</div>
+        <div class="fc-item-body" style="${dim}">
+          <div class="tx-name" style="white-space:normal;overflow:visible;text-overflow:unset;font-size:var(--f-md);font-weight:700">${f.name}</div>
+          <div style="font-size:var(--f-xs);color:var(--tx2);margin-top:3px">${f.category}</div>
+        </div>
+        <div class="fc-item-right" style="${dim}">
+          <div style="font-family:var(--mono);font-size:var(--f-lg);font-weight:700;color:var(--blue)">${fmt(f.amount)}</div>
+          <div style="font-size:var(--f-xs);color:var(--tx2);margin-top:3px">${f.active?'✅ เปิด':'⏸ ปิด'}</div>
+        </div>
+      </div>
+      <div class="fc-item-bottom">
+        <span class="fc-due-badge">วันที่ ${f.dueDay} ของเดือน</span>
+        <div class="fc-actions">
+          <button class="fc-btn edit" onclick="event.stopPropagation();editFc('${f.id}')">✏️ แก้ไข</button>
+          <button class="fc-btn del" onclick="event.stopPropagation();deleteFc('${f.id}')">🗑 ลบ</button>
+        </div>
+      </div>`;
     el.appendChild(d);
   });
 }
@@ -891,10 +967,60 @@ async function deleteFc(id){
   try{const r=await gasCall({action:'deleteFixedCost',id});if(r.success){fixedCosts=fixedCosts.filter(x=>x.id!==id);renderFC();renderNM();showT('🗑 ลบแล้ว','ok')}else showT('❌ ลบไม่สำเร็จ','err')}catch{showT('❌ เชื่อมต่อไม่ได้','err')}
 }
 
+// ─── FIX 2: render fixed pay list in add modal ───
+function renderFCPayList(){
+  const el=document.getElementById('fcPayList');el.innerHTML='';
+  const paidMap=loadFCPaid();
+  const monthKey=`${curY}-${curM}`;
+  const active=fixedCosts.filter(f=>f.active).sort((a,b)=>a.dueDay-b.dueDay);
+  if(!active.length){el.innerHTML='<div class="fc-pay-empty">ยังไม่มี Fixed Cost ที่เปิดใช้งาน<br><span style="color:var(--acc);cursor:pointer;font-weight:700" onclick="closeM(\'addModal\');openM(\'fcModal\')">+ เพิ่ม Fixed Cost</span></div>';return}
+  active.forEach(f=>{
+    const paidKey=`${monthKey}:${f.id}`;
+    const isPaid=!!(paidMap[paidKey]);
+    const d=document.createElement('div');
+    d.className='fc-pay-item'+(isPaid?' paid-done':'');
+    d.innerHTML=`
+      <div class="fcp-icon">${f.category.split(' ')[0]}</div>
+      <div class="fcp-info">
+        <div class="fcp-name">${f.name}</div>
+        <div class="fcp-due">วันที่ ${f.dueDay} · ${f.category}</div>
+      </div>
+      <div class="fcp-right">
+        <div class="fcp-amt">${fmt(f.amount)}</div>
+        <div class="fcp-check">${isPaid?'✅':'○'}</div>
+      </div>`;
+    if(!isPaid){
+      d.onclick=()=>payFixedCost(f,paidKey,d);
+    }
+    el.appendChild(d);
+  });
+}
+
+async function payFixedCost(f,paidKey,el){
+  if(!confirm(`บันทึก "${f.name}" เป็นรายจ่ายเดือนนี้ ${fmt(f.amount)} หรือไม่?`))return;
+  const expCat=fcCatToExpCat(f.category);
+  const dateStr=`${curY}-${String(curM).padStart(2,'0')}-${String(f.dueDay).padStart(2,'0')}`;
+  const data={date:dateStr,amount:f.amount,category:expCat,subCategory:f.name,paymentMethod:'🏦 โอนเงิน',description:f.name,source:'fixed_cost'};
+  try{
+    const r=await gasCall({action:'saveExpense',data});
+    if(r.success){
+      const paidMap=loadFCPaid();
+      paidMap[paidKey]=true;
+      saveFCPaid(paidMap);
+      expenses.push({id:r.id,type:'expense',...data,amount:f.amount});
+      // update UI
+      el.classList.add('paid-done');
+      el.innerHTML=el.innerHTML.replace('○','✅');
+      el.onclick=null;
+      renderAll();
+      showT(`✅ บันทึก ${f.name} แล้ว`,'ok');
+    }else showT('❌ บันทึกไม่สำเร็จ','err');
+  }catch{showT('❌ เชื่อมต่อไม่ได้','err')}
+}
+
 function renderNM(){
   updateNMMonthLabel();
   const cc=nmItems.filter(i=>i.type==='cc').reduce((s,i)=>s+i.amount,0);
-  // Active fixed costs only in total
   const fixedTotal=fixedCosts.filter(f=>f.active).reduce((s,f)=>s+f.amount,0);
   document.getElementById('nmCC').textContent=fmt(cc);
   document.getElementById('nmFixed').textContent=fmt(fixedTotal);
@@ -982,10 +1108,26 @@ async function delTx(){
   try{const r=await gasCall({action:isE?'deleteExpense':'deleteIncome',id:detailTx.id});if(r.success){if(isE)expenses=expenses.filter(e=>e.id!==detailTx.id);else incomes=incomes.filter(i=>i.id!==detailTx.id);closeM('dtModal');renderAll();showT('🗑 ลบแล้ว','ok')}else showT('❌ ลบไม่สำเร็จ','err')}catch{showT('❌ เชื่อมต่อไม่ได้','err')}
 }
 
+// ─── FIX 2: 3-way tab for add modal ───
 function setTT(type){
   txType=type;
-  document.getElementById('tBE').className='type-btn'+(type==='expense'?' expense':'');
-  document.getElementById('tBI').className='type-btn'+(type==='income'?' income':'');
+  // tabs
+  document.getElementById('atE').className='add-tab'+(type==='expense'?' tab-expense':'');
+  document.getElementById('atI').className='add-tab'+(type==='income'?' tab-income':'');
+  document.getElementById('atF').className='add-tab'+(type==='fixed'?' tab-fixed':'');
+
+  const expInc=document.getElementById('addExpInc');
+  const fixedSec=document.getElementById('addFixedPay');
+
+  if(type==='fixed'){
+    expInc.style.display='none';
+    fixedSec.style.display='';
+    renderFCPayList();
+    return;
+  }
+  expInc.style.display='';
+  fixedSec.style.display='none';
+
   document.getElementById('aCatSec').style.display=type==='expense'?'':'none';
   document.getElementById('aSubSec').style.display='none';
   document.getElementById('aSrcSec').style.display=type==='income'?'':'none';
@@ -1017,11 +1159,9 @@ async function saveFc(){
   const btn=document.getElementById('fcSaveBtn'),origTxt=btn.textContent;btn.textContent='กำลังบันทึก...';btn.disabled=true;
   try{
     if(editFcId){
-      // Try update first, fallback: delete + re-add if GAS doesn't support updateFixedCost
       let r;
       try{ r=await gasCall({action:'updateFixedCost',id:editFcId,...data}); }catch(e){ r={success:false} }
       if(!r.success){
-        // Fallback: delete old and save new
         try{
           const rd=await gasCall({action:'deleteFixedCost',id:editFcId});
           if(rd.success){const rs=await gasCall({action:'saveFixedCost',data});if(rs.success){fixedCosts=fixedCosts.filter(f=>f.id!==editFcId);fixedCosts.push({id:rs.id,...data});closeM('fcModal');renderFC();renderNM();showT('✏️ แก้ไขแล้ว','ok')}else showT('❌ บันทึกไม่สำเร็จ','err')}else showT('❌ แก้ไขไม่สำเร็จ','err')
@@ -1058,7 +1198,23 @@ async function onMC(){
 function openM(id){
   if(id==='fcModal'&&!editFcId){document.getElementById('fcModalTitle').textContent='📌 เพิ่ม Fixed Cost';document.getElementById('fcSaveBtn').textContent='📌 บันทึก Fixed Cost';document.getElementById('fcN').value='';document.getElementById('fcAmt').value='';document.getElementById('fcDue').value='';document.getElementById('fcSt').value=today();document.getElementById('fcTog').classList.add('on')}
   document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';
-  if(id==='addModal'){document.getElementById('aDt').value=today();selPay='🏦 โอนเงิน';mkPills('aPayPills',selPay,v=>{selPay=v},PAYS)}
+  if(id==='addModal'){
+    document.getElementById('aDt').value=today();
+    selPay='🏦 โอนเงิน';mkPills('aPayPills',selPay,v=>{selPay=v},PAYS);
+    // reset to expense tab
+    txType='expense';
+    document.getElementById('atE').className='add-tab tab-expense';
+    document.getElementById('atI').className='add-tab';
+    document.getElementById('atF').className='add-tab';
+    document.getElementById('addExpInc').style.display='';
+    document.getElementById('addFixedPay').style.display='none';
+    document.getElementById('aCatSec').style.display='';
+    document.getElementById('aSrcSec').style.display='none';
+    document.getElementById('aPaySec').style.display='';
+    document.getElementById('aSaveBtn').className='btn-submit btn-expense';
+    document.getElementById('aSaveBtn').textContent='− บันทึกรายจ่าย';
+    selCat='';renderCats();
+  }
   if(id==='nmModal'){selNMType='cc';mkPills('nmTypePills',selNMType,v=>{selNMType=v},NM_TYPES)}
 }
 function closeM(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';if(id==='fcModal')editFcId=null}
